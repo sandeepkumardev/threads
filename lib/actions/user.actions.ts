@@ -17,7 +17,7 @@ export async function updateUser({ userId, username, name, bio, image, path }: P
   connectToDB();
 
   try {
-    await User.findOneAndUpdate({ id: userId }, { $set: { name, username, bio, image, onBoarded: true } }, { upsert: true });
+    await User.findOneAndUpdate({ id: userId }, { $set: { name, username, bio, image, onboarded: true } }, { upsert: true });
 
     if (path === "/profile/edit") {
       revalidatePath(path);
