@@ -20,7 +20,7 @@ export const createThread = async ({ text, author, communityId, path }: Params) 
     const thread = await Thread.create({ text, author, community: null });
 
     // update user
-    await User.findOneAndUpdate({ id: author }, { $push: { threads: thread._id } });
+    await User.findOneAndUpdate({ _id: author }, { $push: { threads: thread._id } });
     revalidatePath(path);
   } catch (error: any) {
     console.log(error);
