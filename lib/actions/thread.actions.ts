@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import Thread from "../models/thread.model";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
-import { model } from "mongoose";
+import Community from "../models/community.model";
 
 interface Params {
   text: string;
@@ -17,10 +17,20 @@ export const createThread = async ({ text, author, communityId, path }: Params) 
   connectToDB();
 
   try {
-    const thread = await Thread.create({ text, author, community: null });
+    const communityIdObject = await Community.findOne({ id: communityId }, { _id: 1 });
+
+    const thread = await Thread.create({ text, author, community: communityIdObject });
 
     // update user
     await User.findOneAndUpdate({ _id: author }, { $push: { threads: thread._id } });
+
+    if (communityIdObject) {
+      // Update Community model
+      await Community.findByIdAndUpdate(communityIdObject, {
+        $push: { threads: thread._id },
+      });
+    }
+
     revalidatePath(path);
   } catch (error: any) {
     console.log(error);
@@ -39,6 +49,10 @@ export const fetchThreads = async (pageNumber = 1, pageSize = 10) => {
     .populate({
       path: "author",
       model: User,
+    })
+    .populate({
+      path: "community",
+      model: Community,
     })
     .populate({
       path: "children",
